@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Player–Coach LLM Agents: Confidence-Gated Intervention</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card-bg: #ffffff;
+      --accent: #2d6cdf;
+      --accent-soft: #e4edff;
+      --text-main: #111827;
+      --text-muted: #4b5563;
+      --border-soft: #e5e7eb;
+      --code-bg: #111827;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      line-height: 1.6;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(16px);
+      background: rgba(246, 247, 251, 0.92);
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .nav {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0.7rem 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .nav-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      font-size: 0.85rem;
+    }
+
+    .nav-links a {
+      padding: 0.3rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid transparent;
+    }
+
+    .nav-links a:hover {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      text-decoration: none;
+    }
+
+    main {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2.5rem 1.2rem 3rem;
+    }
+
+    .hero {
+      margin-bottom: 2.5rem;
+    }
+
+    .tagline {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      padding: 0.2rem 0.7rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    h1 {
+      margin: 0.8rem 0 0.3rem;
+      font-size: clamp(1.9rem, 3vw, 2.3rem);
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      margin: 0.2rem 0 1rem;
+      font-size: 1rem;
+      color: var(--text-muted);
+    }
+
+    .authors {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .affiliations {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 1.2rem;
+    }
+
+    .hero-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      margin-bottom: 1.8rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.45rem 0.9rem;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      border: 1px solid var(--border-soft);
+      background: var(--card-bg);
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s ease, transform 0.1s ease,
+        box-shadow 0.15s ease;
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      color: #ffffff;
+      border-color: var(--accent);
+      box-shadow: 0 10px 16px rgba(37, 99, 235, 0.18);
+    }
+
+    .btn.primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 24px rgba(37, 99, 235, 0.25);
+    }
+
+    .btn:hover {
+      text-decoration: none;
+      background: #f9fafb;
+    }
+
+    .btn-icon {
+      font-size: 1.05rem;
+    }
+
+    .hero-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2.2fr);
+      gap: 1.4rem;
+      align-items: stretch;
+    }
+
+    @media (max-width: 800px) {
+      .hero-layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 1.1rem;
+      padding: 1.2rem 1.4rem;
+      border: 1px solid var(--border-soft);
+      box-shadow: 0 14px 35px rgba(15, 23, 42, 0.06);
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+    }
+
+    .abstract-text {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+    }
+
+    .key-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.9rem;
+      margin-top: 0.6rem;
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 640px) {
+      .key-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .metric {
+      padding: 0.7rem 0.8rem;
+      border-radius: 0.9rem;
+      background: #f9fafb;
+      border: 1px solid var(--border-soft);
+    }
+
+    .metric-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 0.15rem;
+    }
+
+    .metric-value {
+      font-weight: 600;
+    }
+
+    section {
+      margin-top: 2.5rem;
+    }
+
+    section h2 {
+      font-size: 1.3rem;
+      margin-bottom: 0.6rem;
+      border-left: 4px solid var(--accent);
+      padding-left: 0.6rem;
+    }
+
+    section p {
+      margin: 0.3rem 0 0.45rem;
+      font-size: 0.95rem;
+    }
+
+    ul {
+      margin: 0.3rem 0 0.6rem 1.1rem;
+      padding: 0;
+      font-size: 0.95rem;
+    }
+
+    li {
+      margin-bottom: 0.25rem;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+      gap: 1.5rem;
+      align-items: flex-start;
+    }
+
+    @media (max-width: 900px) {
+      .two-col {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .figure-box {
+      border-radius: 1rem;
+      background: radial-gradient(circle at top left, #e4edff, #ffffff);
+      border: 1px solid var(--accent-soft);
+      padding: 1rem 1rem 0.9rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .figure-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin-bottom: 0.3rem;
+      font-weight: 600;
+    }
+
+    .fake-diagram {
+      margin: 0.4rem 0 0.6rem;
+      padding: 0.65rem;
+      border-radius: 0.7rem;
+      border: 1px dashed rgba(37, 99, 235, 0.7);
+      font-size: 0.78rem;
+      display: grid;
+      gap: 0.4rem;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 0.5rem;
+      font-size: 0.78rem;
+    }
+
+    .badge {
+      padding: 0.12rem 0.45rem;
+      border-radius: 999px;
+      background: rgba(37, 99, 235, 0.1);
+      color: #1d4ed8;
+      border: 1px solid rgba(37, 99, 235, 0.25);
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 0.88rem;
+      margin-top: 0.7rem;
+      overflow: hidden;
+      border-radius: 0.8rem;
+      background: var(--card-bg);
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.04);
+    }
+
+    th,
+    td {
+      border: 1px solid var(--border-soft);
+      padding: 0.45rem 0.55rem;
+      text-align: center;
+    }
+
+    th {
+      background: #f3f4f6;
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+    }
+
+    tr:nth-child(even) td {
+      background: #f9fafb;
+    }
+
+    .highlight-row td {
+      font-weight: 600;
+      background: #eef2ff;
+    }
+
+    .code-block {
+      margin-top: 0.7rem;
+      border-radius: 0.85rem;
+      background: var(--code-bg);
+      color: #e5e7eb;
+      padding: 0.8rem 0.9rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+        "Liberation Mono", "Courier New", monospace;
+      font-size: 0.78rem;
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      white-space: pre;
+    }
+
+    footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-soft);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="nav">
+      <div class="nav-title">
+        Player–Coach LLM Agents: Confidence-Gated Intervention
+      </div>
+      <nav class="nav-links">
+        <a href="#abstract">Abstract</a>
+        <a href="#overview">Overview</a>
+        <a href="#method">Method</a>
+        <a href="#experiments">Experiments</a>
+        <a href="#ablations">Ablations</a>
+        <a href="#bibtex">BibTeX</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <span class="tagline">Multi-Step LLM Agents</span>
+      <h1>Confidence-Gated Intervention for LLM Reasoning in Multi-Step Environments</h1>
+      <p class="subtitle">
+        A Player–Coach architecture for conditional, real-time oversight in long-horizon decision making.
+      </p>
+
+      <p class="authors">
+        <strong>Heewon Park </strong>, Minhae Kwon
+      </p>
+      <p class="affiliations">
+        Your Affiliation · Conference/Journal (Year)
+      </p>
+
+      <div class="hero-buttons">
+        <a class="btn primary" href="#" target="_blank" rel="noreferrer">
+          <span class="btn-icon">📄</span> Paper (PDF)
+        </a>
+        <a
+          class="btn"
+          href="https://anonymous.4open.science/r/Player-Coach-LLM"
+          target="_blank"
+          rel="noreferrer"
+        >
+          <span class="btn-icon">💻</span> Code
+        </a>
+        <a class="btn" href="#bibtex">
+          <span class="btn-icon">📚</span> BibTeX
+        </a>
+      </div>
+
+      <div class="hero-layout">
+        <div class="card">
+          <div class="card-title" id="abstract">Abstract</div>
+          <p class="abstract-text">
+            We study large language models (LLMs) acting as autonomous agents in
+            interactive environments that require multi-step reasoning and
+            long-horizon decision making. Standard single-agent designs reinforce
+            internal biases and often correct only after errors accumulate. We
+            propose a <strong>Player–Coach system</strong> that enables
+            <strong>confidence-gated, real-time intervention</strong> without
+            additional training: a Player interacts with the environment in a
+            reasoning–acting loop, while a Coach is invoked only in low-confidence
+            states to provide targeted feedback such as clarifying goals or
+            surfacing overlooked observations.
+          </p>
+          <p class="abstract-text">
+            A composite confidence signal, combining <em>normalized entropy</em> and
+            <em>top-two margin</em>, triggers interventions only when beneficial.
+            Experiments on ALFWorld, BabyAI-Text, and WebShop with multiple
+            backbones show consistent gains in success rate, trajectory efficiency,
+            and reward over strong baselines, confirming the practicality of
+            confidence-driven multi-agent oversight for complex decision-making
+            tasks.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-title">At a Glance</div>
+          <div class="key-metrics">
+            <div class="metric">
+              <div class="metric-label">Benchmarks</div>
+              <div class="metric-value">ALFWorld, BabyAI-Text, WebShop</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Backbones</div>
+              <div class="metric-value">LLaMA-3, Gemma-2, Qwen2</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Training</div>
+              <div class="metric-value">None (inference only)</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Success Gain</div>
+              <div class="metric-value">+5–9% over strong baselines</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Traj. Length</div>
+              <div class="metric-value">↓ 8–12% steps</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Intervention</div>
+              <div class="metric-value">Selective, confidence-gated</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="overview">
+      <h2>1. Motivation &amp; Overview</h2>
+      <div class="two-col">
+        <div>
+          <p>
+            LLM-based agents are increasingly deployed in interactive
+            environments where tasks unfold over many steps, such as embodied
+            household tasks, grounded navigation, and web interaction. In these
+            long-horizon settings, agents must reason over ambiguous
+            observations, maintain consistency across evolving contexts, and avoid
+            cascading errors.
+          </p>
+          <p>
+            Existing reasoning-augmented and reflection-based methods improve
+            robustness but typically rely on a single agent that must both act
+            and self-correct. This tends to reinforce internal biases and delays
+            correction until after errors have propagated.
+          </p>
+          <p>
+            <strong>Key observation:</strong> many failures arise not from lack of
+            knowledge but from <em>low-confidence states</em>:
+          </p>
+          <ul>
+            <li>
+              <strong>Diffuse low confidence</strong>: probabilities spread across many
+              actions.
+            </li>
+            <li>
+              <strong>Binary ambiguity</strong>: two leading actions with almost tied
+              scores.
+            </li>
+          </ul>
+          <p>
+            Recognizing these patterns suggests a simple but powerful idea:
+            <strong>invoke an external Coach only when the Player is uncertain</strong>,
+            and do so in a lightweight way that requires no additional training.
+          </p>
+        </div>
+
+        <div class="figure-box">
+          <div class="figure-title">Figure 1. Player–Coach Overview</div>
+          <div class="fake-diagram">
+            <div><strong>Environment</strong> → observation <code>o_t</code>, admissible
+              actions <code>A_t</code></div>
+            <div><strong>Player</strong>:
+              <code>context x_t = [task u, history h_t, reflection R, o_t]</code>
+            </div>
+            <div><strong>Confidence gate</strong>:
+              <code>normalized entropy</code> + <code>top-two margin</code>
+            </div>
+            <div>
+              If gate <code>g_t = 0</code> → Player acts directly.
+              <br />
+              If gate <code>g_t = 1</code> → query <strong>Coach</strong> for feedback
+              <code>Y_t</code>, augment context, re-score actions.
+            </div>
+          </div>
+          <p>
+            The Player remains the sole executor of environment actions; the
+            Coach only augments context with compact feedback when confidence is
+            low, providing lightweight oversight.
+          </p>
+          <div class="badge-row">
+            <span class="badge">No extra training</span>
+            <span class="badge">Real-time correction</span>
+            <span class="badge">Cost-aware intervention</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="method">
+      <h2>2. Method: Confidence-Gated Player–Coach System</h2>
+      <div class="two-col">
+        <div>
+          <h3>2.1 Player: Reasoning &amp; Acting</h3>
+          <p>
+            At each step <code>t</code>, the Player receives observation
+            <code>o_t</code> and admissible action set
+            <code>A_t = {a^(1), ..., a^(|A_t|)}</code>. It constructs a context
+            by concatenating:
+          </p>
+          <ul>
+            <li>Task instruction <code>u</code></li>
+            <li>Recent interaction history <code>h_t</code> (last <em>n</em> steps)</li>
+            <li>Reflection memory <code>R</code></li>
+            <li>Current observation <code>o_t</code></li>
+          </ul>
+          <p>
+            The base LLM, under the Player profile, scores each admissible
+            action by its log-likelihood given the context. Scores are
+            normalized into a preference distribution
+            <code>q(a | x_t)</code>, and the Player proposes the highest-scoring
+            action via greedy selection.
+          </p>
+
+          <h3>2.2 Confidence Signals</h3>
+          <p>
+            The confidence gate relies on two complementary signals derived from
+            <code>q(a | x_t)</code>:
+          </p>
+          <ul>
+            <li>
+              <strong>Normalized entropy</strong> <code>Ĥ_t</code>: measures how
+              diffuse the distribution is, normalized to [0, 1] to make
+              thresholds comparable across different action set sizes.
+            </li>
+            <li>
+              <strong>Top-two margin</strong> <code>m_t = q(1) - q(2)</code>:
+              captures local ambiguity between the two most likely actions.
+            </li>
+          </ul>
+          <p>
+            The gate triggers when
+            <code>Ĥ_t ≥ τ_H</code> (diffuse low confidence) or
+            <code>m_t ≤ τ_m</code> (binary ambiguity). Thresholds are shared
+            across environments and backbones and are robust under wide ranges.
+          </p>
+        </div>
+
+        <div>
+          <h3>2.3 Coach: External Feedback &amp; Fusion</h3>
+          <p>
+            When the gate is active (<code>g_t = 1</code>), the Coach receives
+            the current context and returns a brief, structured feedback:
+          </p>
+          <ul>
+            <li>Rationale (what is going wrong or missing),</li>
+            <li>Plan (a short step-by-step outline),</li>
+            <li>Advice (one compact instruction for the Player).</li>
+          </ul>
+          <p>
+            Feedback is appended to form an augmented context
+            <code>x̃_t</code>, and actions are re-scored before execution.
+            Importantly, the interface to the environment is unchanged: the
+            Player always selects and executes actions.
+          </p>
+          <p>
+            At the end of each episode, the Coach also emits a trial-level
+            reflection, which is added to memory <code>R</code> to guide future
+            trajectories.
+          </p>
+
+          <h3>2.4 Decision-Theoretic View</h3>
+          <p>
+            The gating rule can be viewed as a Bayesian decision threshold:
+            intervene when the expected loss of acting autonomously exceeds the
+            cost of querying the Coach. Normalized entropy and top-two margin
+            approximate posterior uncertainty over actions, making the policy
+            cost-sensitive and utility-maximizing rather than purely heuristic.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="experiments">
+      <h2>3. Experiments</h2>
+      <p>
+        The Player–Coach framework is evaluated on three text-based interactive
+        environments:
+      </p>
+      <ul>
+        <li>
+          <strong>ALFWorld</strong>: household tasks (e.g., “put a clean cloth on
+          the countertop”), focusing on high-level planning.
+        </li>
+        <li>
+          <strong>BabyAI-Text</strong>: grounded navigation and object
+          manipulation with primitive actions.
+        </li>
+        <li>
+          <strong>WebShop</strong>: open-domain web shopping with natural
+          language goals and a large action space.
+        </li>
+      </ul>
+      <p>
+        All methods are instantiated with instruction-tuned backbones
+        (LLaMA-3-8B-Instruct, Gemma-2-9B-it, Qwen2-7B-Instruct) and use
+        deterministic decoding with no additional training.
+      </p>
+
+      <h3>3.1 Main Results (LLaMA-3-8B-Instruct)</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Env</th>
+            <th>Method</th>
+            <th>Success&nbsp;(%)</th>
+            <th>Traj. len.</th>
+            <th>Reward</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ALFWorld</td>
+            <td>ReAct</td>
+            <td>64.9</td>
+            <td>13.4</td>
+            <td>–</td>
+          </tr>
+          <tr>
+            <td>ALFWorld</td>
+            <td>LAC</td>
+            <td>67.1</td>
+            <td>14.2</td>
+            <td>–</td>
+          </tr>
+          <tr class="highlight-row">
+            <td>ALFWorld</td>
+            <td>Player–Coach (ours)</td>
+            <td>77.6</td>
+            <td>11.3</td>
+            <td>–</td>
+          </tr>
+          <tr>
+            <td>BabyAI-Text</td>
+            <td>ReAct</td>
+            <td>69.5</td>
+            <td>14.8</td>
+            <td>–</td>
+          </tr>
+          <tr class="highlight-row">
+            <td>BabyAI-Text</td>
+            <td>Player–Coach (ours)</td>
+            <td>75.9</td>
+            <td>12.4</td>
+            <td>–</td>
+          </tr>
+          <tr>
+            <td>WebShop</td>
+            <td>LAC</td>
+            <td>33.4</td>
+            <td>5.7</td>
+            <td>0.55</td>
+          </tr>
+          <tr class="highlight-row">
+            <td>WebShop</td>
+            <td>Player–Coach (ours)</td>
+            <td>36.2</td>
+            <td>4.9</td>
+            <td>0.63</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        Across backbones and benchmarks, the Player–Coach system consistently
+        improves success rates and rewards while shortening trajectories,
+        demonstrating that <strong>selective, confidence-gated oversight</strong> is
+        more effective and efficient than always-on critics or single-agent
+        reasoning schemes.
+      </p>
+    </section>
+
+    <section id="ablations">
+      <h2>4. Ablations &amp; Case Studies</h2>
+      <h3>4.1 Intervention Strategies</h3>
+      <p>
+        Ablation on ALFWorld compares different intervention schemes:
+      </p>
+      <ul>
+        <li>Random intervention (no confidence signals)</li>
+        <li>Fixed-step intervention (periodic queries)</li>
+        <li>Entropy-only gating (<code>τ_H</code> only)</li>
+        <li>Margin-only gating (<code>τ_m</code> only)</li>
+        <li>Full composite gate (entropy + margin, ours)</li>
+      </ul>
+      <p>
+        Random and fixed-step strategies under-utilize the Coach and waste
+        interventions. Margin-only gating outperforms entropy-only gating,
+        indicating that binary ambiguities are especially harmful. The composite
+        gate achieves the best and most stable performance, adding 1–2% success
+        over the best single-signal variant and ~7–8% over random intervention.
+      </p>
+
+      <h3>4.2 Qualitative Example</h3>
+      <p>
+        In ALFWorld, when asked to place a clean cloth on a countertop, a
+        single-agent baseline may clean a cloth and then repeatedly fetch soap,
+        misinterpreting the state and entering a failure loop. The
+        Player–Coach system detects the low-confidence state via entropy and
+        margin signals, invokes the Coach, and receives a simple clarification:
+        the cloth is already clean and should be placed directly.
+      </p>
+      <p>
+        This timely feedback breaks the loop and completes the task efficiently,
+        highlighting how <strong>targeted coaching at the right moment</strong>
+        prevents cascading errors in long-horizon reasoning.
+      </p>
+    </section>
+
+<!--    <section id="bibtex">-->
+<!--      <h2>5. BibTeX</h2>-->
+<!--      <p>-->
+<!--        &lt;!&ndash;  &ndash;&gt;-->
+<!--      </p>-->
+<!--      <div class="code-block">-->
+<!--        <code>@article{playercoach_llm,-->
+<!--  title   = {Confidence-gated Intervention for LLM Reasoning in Multi-Step Environments with Player&#45;&#45;Coach Agents},-->
+<!--  author  = {Your Name and Coauthor 1 and Coauthor 2},-->
+<!--  journal = {To appear},-->
+<!--  year    = {2025},-->
+<!--}</code>-->
+      </div>
+    </section>
+
+    <footer>
+      <p>
+        Demo project page for <em>Confidence-Gated Intervention for LLM Reasoning
+        in Multi-Step Environments with Player–Coach Agents</em>.
+      </p>
+      <p>
+        Replace placeholder author information and links with the final
+        publication details when available.
+      </p>
+    </footer>
+  </main>
+</body>
+</html>
