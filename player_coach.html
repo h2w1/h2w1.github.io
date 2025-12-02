@@ -294,19 +294,15 @@
 
     <header>
         <h1>Confidence-Gated Player-Coach</h1>
-        <div class="subtitle">From Efficient Oversight to Autonomous Mastery in LLM Agents</div>
-        
         <div class="authors">
             <strong>Heewon Park</strong>, Minhae Kwon
         </div>
         <div class="affiliation">
-            Soongsil University
+            Soongsil University, Seoul, South Korea
         </div>
 
         <div class="links">
-            <a href="#" class="btn">📄 Paper</a>
-            <a href="#" class="btn">💻 Code</a>
-            <a href="#" class="btn">📊 Poster</a>
+            <a href="https://openreview.net/pdf?id=uVQz9t64cK" class="btn">📄 Paper</a>
         </div>
     </header>
 
@@ -337,17 +333,17 @@
         
         <ul class="comparison-list">
             <li>
-                <strong>vs. ReAct (Single-Agent Loop)</strong><br>
+                <strong>vs. Single-Agent Loop</strong><br>
                 <span class="problem-tag">Problem</span> Biases reinforce themselves, leading to cascading errors.<br>
                 <span class="solution-tag">Our Solution</span> <strong>External Oversight</strong> breaks the error loop via objective feedback.
             </li>
             <li>
-                <strong>vs. Reflexion (Post-hoc Correction)</strong><br>
+                <strong>vs. Post-hoc Correction</strong><br>
                 <span class="problem-tag">Problem</span> Relies on trial-and-error (resetting after failure), resulting in wasted trials.<br>
                 <span class="solution-tag">Our Solution</span> <strong>Real-time Intervention</strong> corrects errors <em>before</em> failure occurs within the episode.
             </li>
             <li>
-                <strong>vs. LAC (Continuous Critique)</strong><br>
+                <strong>vs. Continuous Intervention</strong><br>
                 <span class="problem-tag">Problem</span> High inefficiency due to always-on supervision.<br>
                 <span class="solution-tag">Our Solution</span> <strong>Confidence Gating</strong> triggers the Coach only when necessary (Risk > Cost).
             </li>
@@ -430,33 +426,14 @@
             </tbody>
         </table>
 
-        <div class="figure-container">
-             <div class="figure-placeholder" style="min-height: 250px;">
-                [Insert Efficiency / Pareto Frontier Graph Here]
-            </div>
-            <div class="caption">
-                <strong>Figure 2.</strong> Token Efficiency Analysis. Our method achieves the highest success rate while maintaining a low average token cost compared to continuous oversight methods.
-            </div>
-        </div>
+
     </section>
 
-    <section>
-        <h2>Citation</h2>
-        <div class="citation-block">
-@inproceedings{park2025playercoach,
-  title={Confidence-Gated Intervention for LLM Reasoning in Multi-Step Environments with Player-Coach Agents},
-  author={Park, Heewon and Kwon, Minhae},
-  booktitle={Preprint},
-  year={2025}
-}
-        </div>
-    </section>
 
 </div>
 
 <footer>
     <p>&copy; 2025 Heewon Park. All rights reserved.</p>
-    <p>Template inspired by <a href="https://mine-lab-nd.github.io/project/adareasoner.html" target="_blank">AdaReasoner</a>.</p>
 </footer>
 
 </body>
