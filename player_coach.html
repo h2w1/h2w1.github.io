@@ -96,9 +96,17 @@
             transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
+            border: 1px solid transparent;
+        }
+        
+        .btn-disabled {
+            background-color: #f0f0f0;
+            color: #999;
+            cursor: not-allowed;
+            border: 1px solid #ddd;
         }
 
-        .btn:hover {
+        .btn:not(.btn-disabled):hover {
             background-color: var(--accent-color);
             transform: translateY(-2px);
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
@@ -115,7 +123,7 @@
             margin-bottom: 1.5rem;
             font-weight: 700;
             letter-spacing: -0.01em;
-            text-align: center; /* Center headings like AdaReasoner */
+            text-align: center; 
         }
 
         h3 {
@@ -200,18 +208,6 @@
             margin: 2rem 0;
             text-align: center;
         }
-
-        .figure-placeholder {
-            width: 100%;
-            background-color: #eaeaea;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #777;
-            font-weight: 500;
-            min-height: 300px; /* Adjust height based on your image */
-        }
         
         .figure-img {
             max-width: 100%;
@@ -261,6 +257,41 @@
             font-weight: 500;
             color: #2c3e50;
         }
+        
+        /* --- Benchmarks --- */
+        .benchmark-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .benchmark-item {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        
+        .benchmark-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border-color: var(--accent-color);
+        }
+        
+        .benchmark-title {
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .benchmark-desc {
+            font-size: 0.9rem;
+            color: #666;
+        }
 
         /* --- Citation --- */
         .citation-block {
@@ -283,9 +314,6 @@
             color: #888;
             border-top: 1px solid #eaeaea;
         }
-        
-        footer a { color: var(--text-color); text-decoration: none; }
-        footer a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -294,6 +322,8 @@
 
     <header>
         <h1>Confidence-Gated Player-Coach</h1>
+        <div class="subtitle">From Efficient Oversight to Autonomous Mastery in LLM Agents</div>
+        
         <div class="authors">
             <strong>Heewon Park</strong>, Minhae Kwon
         </div>
@@ -302,7 +332,8 @@
         </div>
 
         <div class="links">
-            <a href="https://openreview.net/pdf?id=uVQz9t64cK" class="btn">📄 Paper</a>
+            <a href="#" class="btn btn-disabled">📄 Paper [TBD]</a>
+            <a href="#" class="btn btn-disabled">💻 Code [TBD]</a>
         </div>
     </header>
 
@@ -333,17 +364,17 @@
         
         <ul class="comparison-list">
             <li>
-                <strong>vs. Single-Agent Loop</strong><br>
+                <strong>vs. ReAct (Single-Agent Loop)</strong><br>
                 <span class="problem-tag">Problem</span> Biases reinforce themselves, leading to cascading errors.<br>
                 <span class="solution-tag">Our Solution</span> <strong>External Oversight</strong> breaks the error loop via objective feedback.
             </li>
             <li>
-                <strong>vs. Post-hoc Correction</strong><br>
+                <strong>vs. Reflexion (Post-hoc Correction)</strong><br>
                 <span class="problem-tag">Problem</span> Relies on trial-and-error (resetting after failure), resulting in wasted trials.<br>
                 <span class="solution-tag">Our Solution</span> <strong>Real-time Intervention</strong> corrects errors <em>before</em> failure occurs within the episode.
             </li>
             <li>
-                <strong>vs. Continuous Intervention</strong><br>
+                <strong>vs. LAC (Continuous Critique)</strong><br>
                 <span class="problem-tag">Problem</span> High inefficiency due to always-on supervision.<br>
                 <span class="solution-tag">Our Solution</span> <strong>Confidence Gating</strong> triggers the Coach only when necessary (Risk > Cost).
             </li>
@@ -355,7 +386,7 @@
         
         <h3>1. Decision-Theoretic Gating</h3>
         <p>
-            We frame intervention not as a heuristic, but as a **Cost-Sensitive Decision Making** problem. The Coach is invoked if and only if the risk of failure exceeds the cost of intervention.
+            We frame intervention not as a heuristic, but as a <strong>Cost-Sensitive Decision Making</strong> problem. The Coach is invoked if and only if the risk of failure exceeds the cost of intervention.
         </p>
         <div class="math-block">
             $$g_t = \mathbb{I} \left[ \underbrace{\mathbb{E}[\mathcal{L}_{error}]}_{\text{Risk of Failure}} > \underbrace{C_{interv}}_{\text{Cost of Query}} \right]$$
@@ -380,7 +411,32 @@
     <section>
         <h2>Experimental Results</h2>
         <p>
-            Our method consistently outperforms strong baselines on <strong>ALFWorld</strong>, <strong>BabyAI-Text</strong>, and <strong>WebShop</strong> while maintaining optimal token efficiency.
+            We evaluate our framework on three challenging agentic benchmarks that require multi-step reasoning and planning.
+        </p>
+        
+        <div class="benchmark-grid">
+            <div class="benchmark-item">
+                <div class="benchmark-title">🏠 ALFWorld</div>
+                <div class="benchmark-desc">
+                    Text-based household tasks (e.g., "put a clean cloth on the sofa") requiring high-level planning and object manipulation.
+                </div>
+            </div>
+            <div class="benchmark-item">
+                <div class="benchmark-title">🛒 WebShop</div>
+                <div class="benchmark-desc">
+                    A simulated e-commerce environment where agents must search, browse, and select products matching specific user instructions.
+                </div>
+            </div>
+            <div class="benchmark-item">
+                <div class="benchmark-title">🤖 BabyAI-Text</div>
+                <div class="benchmark-desc">
+                    A grid-world navigation task with natural language instructions, testing the agent's ability to follow low-level spatial commands.
+                </div>
+            </div>
+        </div>
+
+        <p>
+            Our method consistently outperforms strong baselines while maintaining optimal token efficiency.
         </p>
 
         <table>
@@ -425,10 +481,7 @@
                 </tr>
             </tbody>
         </table>
-
-
     </section>
-
 
 </div>
 
